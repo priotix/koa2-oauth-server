@@ -15,20 +15,20 @@ var UnauthorizedRequestError = require('oauth2-server/lib/errors/unauthorized-re
  * Constructor.
  */
 
-function ExpressOAuthServer(options) {
-  options = options || {};
+function KoaOAuthServer(options) {
+	options = options || {};
 
-  if (!options.model) {
-    throw new InvalidArgumentError('Missing parameter: `model`');
-  }
+	if (!options.model) {
+		throw new InvalidArgumentError('Missing parameter: `model`');
+	}
 
-  this.useErrorHandler = options.useErrorHandler ? true : false;
-  delete options.useErrorHandler;
+	this.useErrorHandler = options.useErrorHandler ? true : false;
+	delete options.useErrorHandler;
 
-  this.continueMiddleware = options.continueMiddleware ? true : false;
-  delete options.continueMiddleware;
+	this.continueMiddleware = options.continueMiddleware ? true : false;
+	delete options.continueMiddleware;
 
-  this.server = new NodeOAuthServer(options);
+	this.server = new NodeOAuthServer(options);
 }
 
 /**
@@ -39,24 +39,23 @@ function ExpressOAuthServer(options) {
  * (See: https://tools.ietf.org/html/rfc6749#section-7)
  */
 
-ExpressOAuthServer.prototype.authenticate = function(options) {
-  var that = this;
+KoaOAuthServer.prototype.authenticate = function(options) {
+	var that = this;
 
-  return function(req, res, next) {
-    var request = new Request(req);
-    var response = new Response(res);
-    return Promise.bind(that)
-      .then(function() {
-        return this.server.authenticate(request, response, options);
-      })
-      .tap(function(token) {
-        res.locals.oauth = { token: token };
-        next();
-      })
-      .catch(function(e) {
-        return handleError.call(this, e, req, res, null, next);
-      });
-  };
+	return async function(ctx, next) {
+		var request = new Request(ctx.request);
+		var response = new Response(ctx.response);
+		var token;
+
+		try{
+			token = await that.server.authenticate(request, response, options);
+			ctx.state.oauth = { token: token };
+
+			await next();
+		}catch(e){
+			await handleError.call(that, e, ctx, null, next);
+		}
+	};
 };
 
 /**
@@ -67,30 +66,27 @@ ExpressOAuthServer.prototype.authenticate = function(options) {
  * (See: https://tools.ietf.org/html/rfc6749#section-3.1)
  */
 
-ExpressOAuthServer.prototype.authorize = function(options) {
-  var that = this;
+KoaOAuthServer.prototype.authorize = function(options) {
+	var that = this;
 
-  return function(req, res, next) {
-    var request = new Request(req);
-    var response = new Response(res);
+	return async function(ctx, next){
+		var request = new Request(ctx.request);
+		var response = new Response(ctx.request);
+		var code;
 
-    return Promise.bind(that)
-      .then(function() {
-        return this.server.authorize(request, response, options);
-      })
-      .tap(function(code) {
-        res.locals.oauth = { code: code };
-        if (this.continueMiddleware) {
-          next();
-        }
-      })
-      .then(function() {
-        return handleResponse.call(this, req, res, response);
-      })
-      .catch(function(e) {
-        return handleError.call(this, e, req, res, response, next);
-      });
-  };
+		try{
+			code = await that.server.authorize(request, response, options);
+			ctx.state.oauth = { code: code };
+
+			if(that.continueMiddleware){
+				await next();
+			}
+
+			await handleResponse.call(that, ctx, response);
+		}catch(e){
+			await handleError.call(that, e, ctx, response, next);
+		}
+	};
 };
 
 /**
@@ -101,73 +97,73 @@ ExpressOAuthServer.prototype.authorize = function(options) {
  * (See: https://tools.ietf.org/html/rfc6749#section-3.2)
  */
 
-ExpressOAuthServer.prototype.token = function(options) {
-  var that = this;
+KoaOAuthServer.prototype.token = function(options) {
+	var that = this;
 
-  return function(req, res, next) {
-    var request = new Request(req);
-    var response = new Response(res);
+	return async function(ctx, next){
+		var request = new Request(ctx.request);
+		var response = new Response(ctx.response);
+		var token;
 
-    return Promise.bind(that)
-      .then(function() {
-        return this.server.token(request, response, options);
-      })
-      .tap(function(token) {
-        res.locals.oauth = { token: token };
-        if (this.continueMiddleware) {
-          next();
-        }
-      })
-      .then(function() {
-        return handleResponse.call(this, req, res, response);
-      })
-      .catch(function(e) {
-        return handleError.call(this, e, req, res, response, next);
-      });
-  };
+		try{
+			token = await that.server.token(request, response, options);
+			ctx.state.oauth = { token: token };
+
+			if(that.continueMiddleware){
+				await next();
+			}
+
+			await handleResponse.call(that, ctx, response);
+		}catch(e){
+			await handleError.call(that, e, ctx, response, next);
+		}
+	};
 };
 
 /**
  * Handle response.
  */
-var handleResponse = function(req, res, response) {
+var handleResponse = async function(ctx, response) {
 
-  if (response.status === 302) {
-    var location = response.headers.location;
-    delete response.headers.location;
-    res.set(response.headers);
-    res.redirect(location);
-  } else {
-    res.set(response.headers);
-    res.status(response.status).send(response.body);
-  }
+	if (response.status === 302) {
+		var location = response.headers.location;
+		delete response.headers.location;
+		ctx.set(response.headers);
+		ctx.redirect(location);
+	} else {
+		ctx.set(response.headers);
+		ctx.status = response.status;
+		ctx.body = response.body;
+	}
 };
 
 /**
  * Handle error.
  */
 
-var handleError = function(e, req, res, response, next) {
+var handleError = async function(e, ctx, response, next) {
 
-  if (this.useErrorHandler === true) {
-    next(e);
-  } else {
-    if (response) {
-      res.set(response.headers);
-    }
+	if (this.useErrorHandler === true) {
+		ctx.state.oauth = { error: e };
+		await next();
+	} else {
+		if (response) {
+			ctx.set(response.headers);
+		}
 
-    res.status(e.code);
+		ctx.status = e.code;
 
-    if (e instanceof UnauthorizedRequestError) {
-      return res.send();
-    }
+		if (e instanceof UnauthorizedRequestError) {
+			ctx.body = "";
+			return;
+		}
 
-    res.send({ error: e.name, error_description: e.message });
-  }
+		ctx.body = { error: e.name, error_description: e.message };
+	}
 };
 
 /**
  * Export constructor.
  */
 
-module.exports = ExpressOAuthServer;
+module.exports = KoaOAuthServer;

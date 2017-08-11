@@ -1,35 +1,35 @@
-# Express OAuth Server [![Build Status](https://travis-ci.org/oauthjs/express-oauth-server.png?branch=master)](https://travis-ci.org/oauthjs/express-oauth-server)
+This repository is forked from [express-oauth-server](https://github.com/oauthjs/express-oauth-server). The reason why I choose [express-oauth-server](https://github.com/oauthjs/express-oauth-server) over [koa-oauth-server](https://github.com/oauthjs/koa-oauth-server) is the latter seems to be a little out of maintenance.
 
-Complete, compliant and well tested module for implementing an OAuth2 Server/Provider with [express](https://github.com/expressjs/express) in [node.js](http://nodejs.org/).
+Complete, compliant and well tested module for implementing an OAuth2 Server/Provider with [koa2](https://github.com/koajs/koa) in [node.js](http://nodejs.org/).
 
-This is the express wrapper for [oauth2-server](https://github.com/oauthjs/node-oauth2-server).
+This is the koa2 wrapper for [oauth2-server](https://github.com/oauthjs/node-oauth2-server).
 
 ## Installation
 
-    $ npm install express-oauth-server
+    $ npm install waychan23/koa2-oauth-server
 
 ## Quick Start
 
-The module provides two middlewares - one for granting tokens and another to authorize them. `express-oauth-server` and, consequently `oauth2-server`, expect the request body to be parsed already.
-The following example uses `body-parser` but you may opt for an alternative library.
+The module provides two middlewares - one for granting tokens and another to authorize them. `koa2-oauth-server` and, consequently `oauth2-server`, expect the request body to be parsed already.
+The following example uses `koa-bodyparser` but you may opt for an alternative library.
 
 ```js
-var bodyParser = require('body-parser');
-var express = require('express');
-var OAuthServer = require('express-oauth-server');
+var bodyParser = require('koa-bodyparser');
+var koa = require('koa');
+var OAuthServer = require(koa2-oauth-server');
 
-var app = express();
+var app = new koa();
 
 app.oauth = new OAuthServer({
   model: {}, // See https://github.com/oauthjs/node-oauth2-server for specification
 });
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser());
 app.use(app.oauth.authorize());
 
-app.use(function(req, res) {
-  res.send('Secret area');
+app.use(async (ctx, next) => {
+  ctx.body = 'Secret area';
+  await next();
 });
 
 app.listen(3000);
@@ -47,7 +47,9 @@ var options = {
 (_type: boolean_ default: false)
 
   If false, an error response will be rendered by this component.
-  Set this value to true to allow your own express error handler to handle the error.
+  Set this value to true to allow your own error handler to handle the error.
+  
+  Note: the `error` object will be passed along the middleware chain as `ctx.state.error`.
 
 * `continueMiddleware`
 (_type: boolean default: false_)

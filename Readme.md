@@ -16,7 +16,7 @@ The following example uses `koa-bodyparser` but you may opt for an alternative l
 ```js
 var bodyParser = require('koa-bodyparser');
 var koa = require('koa');
-var OAuthServer = require(koa2-oauth-server');
+var OAuthServer = require('koa2-oauth-server');
 
 var app = new koa();
 
@@ -49,7 +49,7 @@ var options = {
   If false, an error response will be rendered by this component.
   Set this value to true to allow your own error handler to handle the error.
   
-  Note: the `error` object will be passed along the middleware chain as `ctx.state.error`.
+  **Note:** the `error` object will be passed along the middleware chain as `ctx.state.oauth.error`.
 
 * `continueMiddleware`
 (_type: boolean default: false_)

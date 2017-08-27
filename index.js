@@ -50,11 +50,12 @@ KoaOAuthServer.prototype.authenticate = function(options) {
 		try{
 			token = await that.server.authenticate(request, response, options);
 			ctx.state.oauth = { token: token };
-
-			await next();
 		}catch(e){
 			await handleError.call(that, e, ctx, null, next);
+			return;
 		}
+
+		await next();
 	};
 };
 
@@ -77,15 +78,16 @@ KoaOAuthServer.prototype.authorize = function(options) {
 		try{
 			code = await that.server.authorize(request, response, options);
 			ctx.state.oauth = { code: code };
-
-			if(that.continueMiddleware){
-				await next();
-			}
-
-			await handleResponse.call(that, ctx, response);
 		}catch(e){
 			await handleError.call(that, e, ctx, response, next);
+			return;
 		}
+
+		if(that.continueMiddleware){
+			await next();
+		}
+
+		await handleResponse.call(that, ctx, response);
 	};
 };
 
@@ -108,15 +110,16 @@ KoaOAuthServer.prototype.token = function(options) {
 		try{
 			token = await that.server.token(request, response, options);
 			ctx.state.oauth = { token: token };
-
-			if(that.continueMiddleware){
-				await next();
-			}
-
-			await handleResponse.call(that, ctx, response);
 		}catch(e){
 			await handleError.call(that, e, ctx, response, next);
+			return;
 		}
+
+		if(that.continueMiddleware){
+			await next();
+		}
+
+		await handleResponse.call(that, ctx, response);
 	};
 };
 

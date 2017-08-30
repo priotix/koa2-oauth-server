@@ -1,3 +1,5 @@
+An complete executable example here at: https://github.com/waychan23/koa2-oauth-server/tree/master/examples/complete-example.
+
 This repository is forked from [express-oauth-server](https://github.com/oauthjs/express-oauth-server). The reason why I choose [express-oauth-server](https://github.com/oauthjs/express-oauth-server) over [koa-oauth-server](https://github.com/oauthjs/koa-oauth-server) is the latter seems to be a little out of maintenance.
 
 Complete, compliant and well tested module for implementing an OAuth2 Server/Provider with [koa2](https://github.com/koajs/koa) in [node.js](http://nodejs.org/).

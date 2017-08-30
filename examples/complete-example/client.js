@@ -136,7 +136,7 @@ router.get('/receiveGrant', async (ctx, next) => {
                 'expiresAt': Date.now() + resp.body.expires_in * 1000//when the access token will expire
             };
 
-            return forwardToView(ctx, 'oauth-success', {});
+            return await forwardToView(ctx, 'oauth-success', {});
         }catch(e){
             //maybe the code expired
             console.error(e);

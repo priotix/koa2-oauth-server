@@ -97,7 +97,7 @@ async function forwardToView(ctx, viewName, viewModel){
 }
 
 function getRequestUrl(ctx){
-	return `${ctx.protocol}://${ctx.host}${ctx.url}`;
+	return `${ctx.href}`;
 }
 
 function removeUserAction(url){

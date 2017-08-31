@@ -92,7 +92,7 @@ router.get('/getUserInfo', async (ctx, next) => {
     if(token){
         ctx.session.token = token;
         //refresh success, try again
-        ctx.redirect(`${ctx.protocol}://${ctx.host}${ctx.url}`);
+        ctx.redirect(`${ctx.href}`);
     }else{
         //fail to refresh, maybe the refresh token itself expired
         ctx.session.token = null;

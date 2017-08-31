@@ -69,12 +69,13 @@ router.get('/getUserInfo', async (ctx, next) => {
             if(resp.response.statusCode === 200){
                 return ctx.body = resp.body;
             }else if(resp.response.statusCode === 401){
+		//maybe the access token expired, try to use the refresh token to get a new one
                 refresh = true;
             }else{
                 throw new Error(`error-code:${resp.response.statusCode}`);
             }
         }catch(e){
-            //maybe the access token expired, try to use the refresh token to get a new one
+
             return ctx.body = { error: e };
         }
     }

@@ -43,8 +43,8 @@ KoaOAuthServer.prototype.authenticate = function(options) {
 	var that = this;
 
 	return async function(ctx, next) {
-		var request = new Request(ctx.request);
-		var response = new Response(ctx.response);
+		var request = new Request(getRequestOptions(ctx);
+		var response = new Response(getResponseOptions(ctx));
 		var token;
 
 		try{
@@ -71,8 +71,8 @@ KoaOAuthServer.prototype.authorize = function(options) {
 	var that = this;
 
 	return async function(ctx, next){
-		var request = new Request(ctx.request);
-		var response = new Response(ctx.request);
+    var request = new Request(getRequestOptions(ctx);
+    var response = new Response(getResponseOptions(ctx));
 		var code;
 
 		try{
@@ -103,8 +103,8 @@ KoaOAuthServer.prototype.token = function(options) {
 	var that = this;
 
 	return async function(ctx, next){
-		var request = new Request(ctx.request);
-		var response = new Response(ctx.response);
+    var request = new Request(getRequestOptions(ctx);
+    var response = new Response(getResponseOptions(ctx));
 		var token;
 
 		try{
@@ -163,6 +163,26 @@ var handleError = async function(e, ctx, response, next) {
 
 		ctx.body = { error: e.name, error_description: e.message };
 	}
+};
+
+var getRequestOptions = function(ctx) {
+  const reqHeaders = ctx.request.headers;
+
+  return {
+    headers: reqHeaders,
+    query: ctx.request.query,
+    body: ctx.request.body,
+    method: ctx.request.method,
+  };
+};
+
+var getResponseOptions = function(ctx) {
+  const respHeaders = { ...ctx.response.headers };
+
+  return { 
+    headers: respHeaders, 
+    body: ctx.response.body 
+  };
 };
 
 /**

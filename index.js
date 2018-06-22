@@ -43,7 +43,7 @@ KoaOAuthServer.prototype.authenticate = function(options) {
 	var that = this;
 
 	return async function(ctx, next) {
-		var request = new Request(getRequestOptions(ctx);
+		var request = new Request(getRequestOptions(ctx));
 		var response = new Response(getResponseOptions(ctx));
 		var token;
 
@@ -71,7 +71,7 @@ KoaOAuthServer.prototype.authorize = function(options) {
 	var that = this;
 
 	return async function(ctx, next){
-    var request = new Request(getRequestOptions(ctx);
+    var request = new Request(getRequestOptions(ctx));
     var response = new Response(getResponseOptions(ctx));
 		var code;
 
@@ -103,7 +103,7 @@ KoaOAuthServer.prototype.token = function(options) {
 	var that = this;
 
 	return async function(ctx, next){
-    var request = new Request(getRequestOptions(ctx);
+    var request = new Request(getRequestOptions(ctx));
     var response = new Response(getResponseOptions(ctx));
 		var token;
 
